@@ -7,7 +7,7 @@ import type { DivIcon } from "leaflet";
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 /* ================================
-   IMPORTS REACT-LEAFLET (SIN SSR)
+   IMPORTS REACT-LEAFLET (SIN SSR)a
 ================================ */
 const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),

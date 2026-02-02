@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import L from "leaflet";
+import type { DivIcon } from "leaflet";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
@@ -27,45 +27,8 @@ const Popup = dynamic(
 );
 
 /* ================================
-   ICONOS DOCYA
-================================ */
-
-const medicoIcon = new L.DivIcon({
-  className: "",
-  html: `
-    <div style="
-      width: 14px;
-      height: 14px;
-      background: #14B8A6;
-      border: 2px solid #0F766E;
-      border-radius: 50%;
-      box-shadow: 0 0 12px rgba(20,184,166,.9);
-    "></div>
-  `,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
-});
-
-const enfermeroIcon = new L.DivIcon({
-  className: "",
-  html: `
-    <div style="
-      width: 14px;
-      height: 14px;
-      background: #3B82F6;
-      border: 2px solid #1D4ED8;
-      border-radius: 50%;
-      box-shadow: 0 0 12px rgba(59,130,246,.9);
-    "></div>
-  `,
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
-});
-
-/* ================================
    TIPOS
 ================================ */
-
 type Profesional = {
   id: number;
   nombre: string;
@@ -80,17 +43,61 @@ type Profesional = {
 /* ================================
    COMPONENTE
 ================================ */
-
 export default function MapaMedicos() {
   const [mounted, setMounted] = useState(false);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
+  const [medicoIcon, setMedicoIcon] = useState<DivIcon | null>(null);
+  const [enfermeroIcon, setEnfermeroIcon] = useState<DivIcon | null>(null);
 
-  // asegurar DOM (fix Next + Leaflet)
+  // asegurar DOM
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // cargar profesionales conectados (backend decide)
+  // cargar Leaflet solo en cliente (FIX BUILD)
+  useEffect(() => {
+    if (!mounted) return;
+
+    import("leaflet").then((L) => {
+      setMedicoIcon(
+        new L.DivIcon({
+          className: "",
+          html: `
+            <div style="
+              width:14px;
+              height:14px;
+              background:#14B8A6;
+              border:2px solid #0F766E;
+              border-radius:50%;
+              box-shadow:0 0 12px rgba(20,184,166,.9);
+            "></div>
+          `,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        })
+      );
+
+      setEnfermeroIcon(
+        new L.DivIcon({
+          className: "",
+          html: `
+            <div style="
+              width:14px;
+              height:14px;
+              background:#3B82F6;
+              border:2px solid #1D4ED8;
+              border-radius:50%;
+              box-shadow:0 0 12px rgba(59,130,246,.9);
+            "></div>
+          `,
+          iconSize: [14, 14],
+          iconAnchor: [7, 7],
+        })
+      );
+    });
+  }, [mounted]);
+
+  // cargar profesionales conectados
   useEffect(() => {
     if (!mounted) return;
 
@@ -98,11 +105,8 @@ export default function MapaMedicos() {
       fetch(`${API}/monitoreo/profesionales_conectados`)
         .then((r) => r.json())
         .then((d) => {
-          if (d.ok) {
-            setProfesionales(d.profesionales || []);
-          } else {
-            setProfesionales([]);
-          }
+          if (d.ok) setProfesionales(d.profesionales || []);
+          else setProfesionales([]);
         })
         .catch(() => setProfesionales([]));
 
@@ -111,7 +115,7 @@ export default function MapaMedicos() {
     return () => clearInterval(i);
   }, [mounted]);
 
-  if (!mounted) {
+  if (!mounted || !medicoIcon || !enfermeroIcon) {
     return (
       <div className="h-[420px] flex items-center justify-center text-white/60">
         Cargando mapa…
@@ -151,16 +155,13 @@ export default function MapaMedicos() {
                   <div
                     style={{
                       fontWeight: 600,
-                      color:
-                        p.tipo === "medico" ? "#14B8A6" : "#3B82F6",
+                      color: p.tipo === "medico" ? "#14B8A6" : "#3B82F6",
                       marginBottom: 4,
                     }}
                   >
                     {p.nombre}
                   </div>
-                  <div style={{ fontSize: 12 }}>
-                    {p.especialidad}
-                  </div>
+                  <div style={{ fontSize: 12 }}>{p.especialidad}</div>
                   <div style={{ fontSize: 11, opacity: 0.7 }}>
                     {p.telefono}
                   </div>
@@ -185,7 +186,6 @@ export default function MapaMedicos() {
 /* ================================
    COMPONENTES AUX
 ================================ */
-
 function Legend({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-2">
@@ -221,9 +221,7 @@ function TablaProfesionales({ data }: { data: Profesional[] }) {
               key={p.id}
               className="border-t border-white/5 hover:bg-white/5"
             >
-              <td className="px-3 py-2 font-medium">
-                {p.nombre}
-              </td>
+              <td className="px-3 py-2 font-medium">{p.nombre}</td>
               <td
                 className={`px-3 py-2 ${
                   p.tipo === "medico"
@@ -233,15 +231,9 @@ function TablaProfesionales({ data }: { data: Profesional[] }) {
               >
                 {p.tipo}
               </td>
-              <td className="px-3 py-2">
-                {p.especialidad}
-              </td>
-              <td className="px-3 py-2">
-                {p.telefono}
-              </td>
-              <td className="px-3 py-2">
-                {p.matricula || "—"}
-              </td>
+              <td className="px-3 py-2">{p.especialidad}</td>
+              <td className="px-3 py-2">{p.telefono}</td>
+              <td className="px-3 py-2">{p.matricula || "—"}</td>
             </tr>
           ))}
         </tbody>

@@ -54,50 +54,7 @@ export default function MapaMedicos() {
     setMounted(true);
   }, []);
 
-  // cargar Leaflet solo en cliente (FIX BUILD)
-  useEffect(() => {
-    if (!mounted) return;
-
-    import("leaflet").then((L) => {
-      setMedicoIcon(
-        new L.DivIcon({
-          className: "",
-          html: `
-            <div style="
-              width:14px;
-              height:14px;
-              background:#14B8A6;
-              border:2px solid #0F766E;
-              border-radius:50%;
-              box-shadow:0 0 12px rgba(20,184,166,.9);
-            "></div>
-          `,
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
-        })
-      );
-
-      setEnfermeroIcon(
-        new L.DivIcon({
-          className: "",
-          html: `
-            <div style="
-              width:14px;
-              height:14px;
-              background:#3B82F6;
-              border:2px solid #1D4ED8;
-              border-radius:50%;
-              box-shadow:0 0 12px rgba(59,130,246,.9);
-            "></div>
-          `,
-          iconSize: [14, 14],
-          iconAnchor: [7, 7],
-        })
-      );
-    });
-  }, [mounted]);
-
-  // cargar profesionales conectados
+  // cargar profesionales conectados (backend decide)
   useEffect(() => {
     if (!mounted) return;
 
@@ -105,17 +62,20 @@ export default function MapaMedicos() {
       fetch(`${API}/monitoreo/profesionales_conectados`)
         .then((r) => r.json())
         .then((d) => {
-          if (d.ok) setProfesionales(d.profesionales || []);
-          else setProfesionales([]);
+          if (d.ok) {
+            setProfesionales(d.profesionales || []);
+          } else {
+            setProfesionales([]);
+          }
         })
         .catch(() => setProfesionales([]));
 
     load();
-    const i = setInterval(load, 5000);
+    const i = setInterval(load, 10000); // cada 10s
     return () => clearInterval(i);
   }, [mounted]);
 
-  if (!mounted || !medicoIcon || !enfermeroIcon) {
+  if (!mounted) {
     return (
       <div className="h-[420px] flex items-center justify-center text-white/60">
         Cargando mapa…

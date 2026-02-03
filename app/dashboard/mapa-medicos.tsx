@@ -7,7 +7,7 @@ import L from "leaflet";
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 /* ================================
-   IMPORTS REACT-LEAFLET (SIN SSR)a
+   IMPORTS REACT-LEAFLET (SIN SSR)adad
 ================================ */
 const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),

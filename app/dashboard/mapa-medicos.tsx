@@ -51,6 +51,8 @@ export default function MapaMedicos() {
      useState<ReturnType<typeof L.divIcon> | null>(null);
   const [enfermeroIcon, setEnfermeroIcon] =
      useState<ReturnType<typeof L.divIcon> | null>(null);
+  const center: [number, number] = [-34.6037, -58.3816];
+
 
 
 
@@ -150,11 +152,12 @@ export default function MapaMedicos() {
       {/* MAPA */}
       <div className="h-[420px] rounded-lg overflow-hidden border border-white/10">
         <MapContainer
-          center={[-34.6037, -58.3816]}
-          zoom={12}
-          className="w-full h-full"
-          zoomControl={false}
+           center={center}
+           zoom={12}
+           className="w-full h-full"
+           zoomControl={false}
         >
+
           <TileLayer
             attribution="© OpenStreetMap © CARTO"
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"

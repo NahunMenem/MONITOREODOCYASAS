@@ -3,25 +3,28 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import L from "leaflet";
-import type { MapContainerProps } from "react-leaflet";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 /* ================================
-   IMPORTS REACT-LEAFLET (SIN SSR)adadads
+   IMPORTS REACT-LEAFLET (SIN SSR)
+   ⚠️ tipado correcto para TS + Vercel
 ================================ */
-const MapContainer = dynamic<MapContainerProps>(
+const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),
   { ssr: false }
-);
+) as unknown as typeof import("react-leaflet").MapContainer;
+
 const TileLayer = dynamic(
   () => import("react-leaflet").then((m) => m.TileLayer),
   { ssr: false }
 );
+
 const Marker = dynamic(
   () => import("react-leaflet").then((m) => m.Marker),
   { ssr: false }
 );
+
 const Popup = dynamic(
   () => import("react-leaflet").then((m) => m.Popup),
   { ssr: false }
@@ -48,13 +51,12 @@ export default function MapaMedicos() {
   const [mounted, setMounted] = useState(false);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [medicoIcon, setMedicoIcon] =
-     useState<ReturnType<typeof L.divIcon> | null>(null);
+    useState<ReturnType<typeof L.divIcon> | null>(null);
   const [enfermeroIcon, setEnfermeroIcon] =
-     useState<ReturnType<typeof L.divIcon> | null>(null);
+    useState<ReturnType<typeof L.divIcon> | null>(null);
+
+  // ✅ tipado correcto para react-leaflet
   const center: [number, number] = [-34.6037, -58.3816];
-
-
-
 
   /* asegurar DOM */
   useEffect(() => {
@@ -99,7 +101,6 @@ export default function MapaMedicos() {
 
   /* ================================
      CARGA DESDE DB (MONITOREO REAL)
-     SIN RADIO / SIN DISTANCIA
   ================================ */
   useEffect(() => {
     if (!mounted) return;
@@ -152,12 +153,11 @@ export default function MapaMedicos() {
       {/* MAPA */}
       <div className="h-[420px] rounded-lg overflow-hidden border border-white/10">
         <MapContainer
-           center={center}
-           zoom={12}
-           className="w-full h-full"
-           zoomControl={false}
+          center={center}
+          zoom={12}
+          className="w-full h-full"
+          zoomControl={false}
         >
-
           <TileLayer
             attribution="© OpenStreetMap © CARTO"
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -267,3 +267,4 @@ function TablaProfesionales({ data }: { data: Profesional[] }) {
     </div>
   );
 }
+

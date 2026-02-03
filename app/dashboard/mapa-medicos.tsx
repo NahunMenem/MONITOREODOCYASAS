@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import L from "leaflet";
-import type { LatLngTuple } from "leaflet";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 

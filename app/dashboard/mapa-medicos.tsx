@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import L from "leaflet";
+import type { MapContainerProps } from "react-leaflet";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;
 
 /* ================================
    IMPORTS REACT-LEAFLET (SIN SSR)adad
 ================================ */
-const MapContainer = dynamic(
+const MapContainer = dynamic<MapContainerProps>(
   () => import("react-leaflet").then((m) => m.MapContainer),
   { ssr: false }
 );

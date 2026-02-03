@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import type { DivIcon, LatLngTuple } from "leaflet";
 import L from "leaflet";
 
 const API = process.env.NEXT_PUBLIC_API_BASE!;

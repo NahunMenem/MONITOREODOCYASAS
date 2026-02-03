@@ -163,7 +163,7 @@ export default function MapaMedicos() {
           {profesionales.map((p) => (
             <Marker
               key={p.id}
-              position={[p.lat, p.lng] as LatLngTuple}
+              position={[p.lat, p.lng]}
               icon={p.tipo === "medico" ? medicoIcon : enfermeroIcon}
             >
               <Popup>

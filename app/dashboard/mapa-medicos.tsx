@@ -13,7 +13,8 @@ const API = process.env.NEXT_PUBLIC_API_BASE!;
 const MapContainer = dynamic(
   () => import("react-leaflet").then((m) => m.MapContainer),
   { ssr: false }
-) as unknown as typeof import("react-leaflet").MapContainer;
+) as any;
+
 
 const TileLayer = dynamic(
   () => import("react-leaflet").then((m) => m.TileLayer),

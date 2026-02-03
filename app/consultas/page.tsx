@@ -83,8 +83,16 @@ export default function MonitoreoConsultasPage() {
   const fetchConsultas = async () => {
     setLoading(true);
     try {
+      let d = desde;
+      let h = hasta;
+
+      // ✅ corrección mínima: normalizar rango
+      if (new Date(d) > new Date(h)) {
+        [d, h] = [h, d];
+      }
+
       const res = await fetch(
-        `${API}/monitoreo/consultas?desde=${desde}&hasta=${hasta}`
+        `${API}/monitoreo/consultas/?desde=${d}&hasta=${h}`
       );
       const data = await res.json();
       setConsultas(data.consultas || []);

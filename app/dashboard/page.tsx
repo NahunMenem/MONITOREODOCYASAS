@@ -1,4 +1,5 @@
 "use client";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 
 import { useEffect, useState } from "react";
 import {
@@ -64,16 +65,28 @@ export default function DashboardHome() {
       .then((d) => setTiempoLlegada(d.tiempo_llegada_promedio_min || 0));
 
     const loadProfesionales = () =>
-      fetch(`${API}/monitoreo/profesionales_conectados`)
+      fetch(`${API}/monitoreo/medicos_mapa`)
         .then((r) => r.json())
         .then((d) => {
-          if (d.ok) setProfesionales(d.profesionales || []);
-          else setProfesionales([]);
+          if (!d.ok) {
+            setProfesionales([]);
+            return;
+          }
+
+          setProfesionales(
+            (d.profesionales || []).map((p: any) => ({
+              id: p.id,
+              nombre: p.nombre,
+              tipo: p.tipo,
+              telefono: p.telefono ?? "",
+              matricula: p.matricula,
+            }))
+          );
         })
         .catch(() => setProfesionales([]));
 
     loadProfesionales();
-    const i = setInterval(loadProfesionales, 5000);
+    const i = setInterval(loadProfesionales, 15000);
     return () => clearInterval(i);
   }, []);
 
@@ -112,7 +125,7 @@ export default function DashboardHome() {
           <div className="flex items-center gap-2 text-white">
             <MapPinned className="w-5 h-5 text-white" />
             <h2 className="font-semibold text-lg text-white">
-              Profesionales conectados en tiempo real
+              Profesionales activos con ubicación
             </h2>
           </div>
 
@@ -140,12 +153,12 @@ function Kpi({
   icon: any;
 }) {
   return (
-    <Card className="bg-white/10 backdrop-blur border border-white/20 hover:bg-white/15 transition text-white">
+    <Card className="bg-white/10 backdrop-blur border border-white/20 text-white">
       <CardContent className="p-4 flex items-center gap-4 text-white">
-        <div className="p-3 rounded-xl bg-white/10">
+        <div className="p-3 rounded-xl bg-white/10 text-white">
           <Icon className="w-6 h-6 text-white" />
         </div>
-        <div>
+        <div className="text-white">
           <p className="text-xs text-white/70">{label}</p>
           <p className="text-2xl font-bold text-white">
             {value ?? "—"}
@@ -163,7 +176,7 @@ function TablaProfesionales({ data }: { data: Profesional[] }) {
   if (!data.length) {
     return (
       <div className="text-sm text-white/60">
-        No hay profesionales conectados.
+        No hay profesionales activos con ubicación.
       </div>
     );
   }
@@ -179,24 +192,13 @@ function TablaProfesionales({ data }: { data: Profesional[] }) {
             <th className="px-3 py-2 text-left text-white">Teléfono</th>
           </tr>
         </thead>
-        <tbody className="text-white">
+        <tbody>
           {data.map((p) => (
-            <tr
-              key={p.id}
-              className="border-t border-white/5 hover:bg-white/5"
-            >
-              <td className="px-3 py-2 font-medium text-white">
-                {p.nombre}
-              </td>
-              <td className="px-3 py-2 text-white">
-                {p.tipo}
-              </td>
-              <td className="px-3 py-2 text-white">
-                {p.matricula || "—"}
-              </td>
-              <td className="px-3 py-2 text-white">
-                {p.telefono}
-              </td>
+            <tr key={p.id} className="border-t border-white/5 text-white">
+              <td className="px-3 py-2 font-medium text-white">{p.nombre}</td>
+              <td className="px-3 py-2 text-white">{p.tipo}</td>
+              <td className="px-3 py-2 text-white">{p.matricula || "—"}</td>
+              <td className="px-3 py-2 text-white">{p.telefono}</td>
             </tr>
           ))}
         </tbody>

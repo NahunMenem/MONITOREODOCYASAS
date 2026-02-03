@@ -47,8 +47,9 @@ type Profesional = {
 export default function MapaMedicos() {
   const [mounted, setMounted] = useState(false);
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
-  const [medicoIcon, setMedicoIcon] = useState<DivIcon | null>(null);
-  const [enfermeroIcon, setEnfermeroIcon] = useState<DivIcon | null>(null);
+  const [medicoIcon, setMedicoIcon] = useState<L.DivIcon | null>(null);
+  const [enfermeroIcon, setEnfermeroIcon] = useState<L.DivIcon | null>(null);
+
 
   /* asegurar DOM */
   useEffect(() => {

@@ -61,9 +61,9 @@ type Consulta = {
   paciente: string;
   profesional: string;
   tipo: string;
-  inicio_atencion: string | null;
-  fin_atencion: string | null;
-  duracion_min: number | null;
+
+  tiempo_llegada_min?: number | null;
+  duracion_atencion_min?: number | null;
 };
 
 /* ===================== */
@@ -86,7 +86,6 @@ export default function MonitoreoConsultasPage() {
       let d = desde;
       let h = hasta;
 
-      // ✅ corrección mínima: normalizar rango
       if (new Date(d) > new Date(h)) {
         [d, h] = [h, d];
       }
@@ -142,6 +141,22 @@ export default function MonitoreoConsultasPage() {
     { key: "en_domicilio", label: "En domicilio", icon: Home },
     { key: "finalizada", label: "Finalizadas", icon: Activity },
   ];
+
+  const promedioLlegada = useMemo(() => {
+    const vals = consultas
+      .map((c) => c.tiempo_llegada_min)
+      .filter((v): v is number => typeof v === "number");
+    if (!vals.length) return "-";
+    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+  }, [consultas]);
+
+  const promedioDuracion = useMemo(() => {
+    const vals = consultas
+      .map((c) => c.duracion_atencion_min)
+      .filter((v): v is number => typeof v === "number");
+    if (!vals.length) return "-";
+    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+  }, [consultas]);
 
   const estadoBadge = (estado: string) => (
     <Badge className="bg-[var(--docya-primary)]/20 text-white border border-[var(--docya-primary)]">
@@ -201,13 +216,13 @@ export default function MonitoreoConsultasPage() {
         {/* ===================== */}
         {/* KPIs */}
         {/* ===================== */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-8 gap-4">
           <Card className="bg-[var(--docya-dark-2)] text-white">
-            <CardContent className="p-4 text-white">
-              <p className="text-sm flex items-center gap-1 text-white">
+            <CardContent className="p-4">
+              <p className="text-sm flex items-center gap-1">
                 <Activity size={14} /> Total
               </p>
-              <p className="text-2xl font-bold text-white">{totalConsultas}</p>
+              <p className="text-2xl font-bold">{totalConsultas}</p>
             </CardContent>
           </Card>
 
@@ -215,17 +230,35 @@ export default function MonitoreoConsultasPage() {
             const Icon = e.icon;
             return (
               <Card key={e.key} className="bg-[var(--docya-dark-2)] text-white">
-                <CardContent className="p-4 text-white">
-                  <p className="text-sm flex items-center gap-1 text-white">
+                <CardContent className="p-4">
+                  <p className="text-sm flex items-center gap-1">
                     <Icon size={14} /> {e.label}
                   </p>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-2xl font-bold">
                     {kpiMap[e.key] || 0}
                   </p>
                 </CardContent>
               </Card>
             );
           })}
+
+          <Card className="bg-[var(--docya-dark-2)] text-white">
+            <CardContent className="p-4">
+              <p className="text-sm flex items-center gap-1">
+                <Truck size={14} /> Llegada prom.
+              </p>
+              <p className="text-2xl font-bold">{promedioLlegada} min</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[var(--docya-dark-2)] text-white">
+            <CardContent className="p-4">
+              <p className="text-sm flex items-center gap-1">
+                <Clock size={14} /> Atención prom.
+              </p>
+              <p className="text-2xl font-bold">{promedioDuracion} min</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* ===================== */}
@@ -233,11 +266,11 @@ export default function MonitoreoConsultasPage() {
         {/* ===================== */}
         <Card className="bg-[var(--docya-dark-2)] text-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
+            <CardTitle className="flex items-center gap-2">
               <Activity size={18} /> Listado de consultas
             </CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto text-white">
+          <CardContent className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="border-[var(--docya-dark-3)]">
@@ -250,6 +283,7 @@ export default function MonitoreoConsultasPage() {
                     "Tipo",
                     "Pago",
                     "Dirección",
+                    "Llegada",
                     "Duración",
                     "Acciones",
                   ].map((h) => (
@@ -264,63 +298,58 @@ export default function MonitoreoConsultasPage() {
                 {consultas.map((c) => (
                   <TableRow
                     key={c.id}
-                    className="border-[var(--docya-dark-3)] text-white"
+                    className="border-[var(--docya-dark-3)]"
                   >
-                    <TableCell className="text-white">{c.id}</TableCell>
-                    <TableCell className="text-white">
+                    <TableCell>{c.id}</TableCell>
+                    <TableCell>
                       {format(new Date(c.creado_en), "dd/MM/yyyy HH:mm", {
                         locale: es,
                       })}
                     </TableCell>
-                    <TableCell className="text-white">
-                      {estadoBadge(c.estado)}
-                    </TableCell>
-                    <TableCell className="text-white">{c.paciente}</TableCell>
-                    <TableCell className="text-white">{c.profesional}</TableCell>
-                    <TableCell className="text-white">{c.tipo}</TableCell>
-                    <TableCell className="text-white">{c.metodo_pago}</TableCell>
-                    <TableCell className="max-w-xs truncate text-white">
+                    <TableCell>{estadoBadge(c.estado)}</TableCell>
+                    <TableCell>{c.paciente}</TableCell>
+                    <TableCell>{c.profesional}</TableCell>
+                    <TableCell>{c.tipo}</TableCell>
+                    <TableCell>{c.metodo_pago}</TableCell>
+                    <TableCell className="max-w-xs truncate">
                       {c.direccion}
                     </TableCell>
-                    <TableCell className="text-white">
-                      {c.duracion_min ? `${c.duracion_min} min` : "-"}
+                    <TableCell>
+                      {c.tiempo_llegada_min != null
+                        ? `${c.tiempo_llegada_min} min`
+                        : "-"}
                     </TableCell>
-
-                    <TableCell className="text-right text-white">
+                    <TableCell>
+                      {c.duracion_atencion_min != null
+                        ? `${c.duracion_atencion_min} min`
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="text-right">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            className="text-red-400 hover:bg-red-500/10"
                           >
                             <Trash2 size={16} />
                           </Button>
                         </AlertDialogTrigger>
 
-                        <AlertDialogContent className="bg-[#0F2027] text-white border border-[#2C5364] shadow-2xl rounded-xl">
+                        <AlertDialogContent className="bg-[#0F2027] text-white border border-[#2C5364]">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-white text-lg font-semibold">
+                            <AlertDialogTitle>
                               ¿Eliminar consulta?
                             </AlertDialogTitle>
-                            <AlertDialogDescription className="text-white/80">
-                              Esta acción es{" "}
-                              <span className="font-semibold text-red-400">
-                                irreversible
-                              </span>
-                              .
-                              <br />
-                              La consulta se eliminará de forma permanente.
+                            <AlertDialogDescription>
+                              Esta acción es irreversible.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-
-                          <AlertDialogFooter className="gap-2">
-                            <AlertDialogCancel className="bg-[#203A43] text-white border border-white/20 hover:bg-[#2C5364]">
-                              Cancelar
-                            </AlertDialogCancel>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => eliminarConsulta(c.id)}
-                              className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+                              className="bg-red-600 hover:bg-red-700"
                             >
                               Eliminar
                             </AlertDialogAction>

@@ -97,6 +97,32 @@ export default function MedicosPage() {
         );
       });
   }, [medicos, search, tipoFiltro]);
+  const kpis = useMemo(() => {
+    const total = medicos.length;
+  
+    const medicosCount = medicos.filter(m => m.tipo === "medico").length;
+    const enfermerosCount = medicos.filter(m => m.tipo === "enfermero").length;
+  
+    const habilitados = medicos.filter(m => m.matricula_validada).length;
+    const bloqueados = medicos.filter(m => !m.matricula_validada).length;
+  
+    const ahora = Date.now();
+    const conectados24h = medicos.filter(m => {
+      if (!m.ultimo_ping) return false;
+      const diff = ahora - new Date(m.ultimo_ping).getTime();
+      return diff <= 24 * 60 * 60 * 1000;
+    }).length;
+  
+    return {
+      total,
+      medicosCount,
+      enfermerosCount,
+      habilitados,
+      bloqueados,
+      conectados24h,
+    };
+  }, [medicos]);
+  
 
   // ===============================
   // 🔐 ACCESO APP
@@ -123,6 +149,57 @@ export default function MedicosPage() {
       <Sidebar />
 
       <main className="flex-1 p-6 space-y-6 overflow-y-auto text-white">
+        {/* 📊 KPIs */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <Card className="bg-[var(--docya-dark-2)]">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-slate-300">Total</p>
+              <p className="text-2xl font-bold">{kpis.total}</p>
+            </CardContent>
+          </Card>
+        
+          <Card className="bg-[var(--docya-dark-2)]">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-slate-300">Médicos</p>
+              <p className="text-2xl font-bold">{kpis.medicosCount}</p>
+            </CardContent>
+          </Card>
+        
+          <Card className="bg-[var(--docya-dark-2)]">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-slate-300">Enfermeros</p>
+              <p className="text-2xl font-bold">{kpis.enfermerosCount}</p>
+            </CardContent>
+          </Card>
+        
+          <Card className="bg-[var(--docya-dark-2)] border-l-4 border-green-500">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-slate-300">Acceso habilitado</p>
+              <p className="text-2xl font-bold text-green-400">
+                {kpis.habilitados}
+              </p>
+            </CardContent>
+          </Card>
+        
+          <Card className="bg-[var(--docya-dark-2)] border-l-4 border-red-500">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-slate-300">Acceso bloqueado</p>
+              <p className="text-2xl font-bold text-red-400">
+                {kpis.bloqueados}
+              </p>
+            </CardContent>
+          </Card>
+        
+          <Card className="bg-[var(--docya-dark-2)] border-l-4 border-blue-500">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-slate-300">Conectados 24h</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {kpis.conectados24h}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
         {/* 🔎 FILTROS */}
         <Card className="bg-[var(--docya-dark-2)] text-white">
           <CardHeader>
